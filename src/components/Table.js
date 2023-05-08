@@ -88,7 +88,9 @@ function TableRows({ rows, tableRowRemove, onValUpdate, setIsEdit }) {
 }
 function Table() {
   const [rows, initRow] = useState([]);
-  let search = "";
+  const [oldRows, initOldRow] = useState([]);
+  const [search, setSearch] = useState('');
+  const [isSearch, setIsSearch] = useState(false);
   const addRowTable = () => {
     const data = {
       msv: "",
@@ -108,6 +110,7 @@ function Table() {
     const data = [...rows];
     data[i][name] = value;
     initRow(data);
+    initOldRow(data);
   };  
   const setIsEdit = (index, value) => {
     const data = [...rows];
@@ -121,29 +124,33 @@ function Table() {
     }
     data[index].isEdit = value;
     initRow(data);
+    initOldRow(data);
   };
-  const setSearch = (event) => {
+  const handleSearch = (event) => {
+    if (!isSearch) {
+      for (let i = 0; i < rows.length; i++) {
+        rows[i].isEdit = false;
+        rows[i].firstEdit = true;
+      }
+      initOldRow(rows);
+      setIsSearch(true);
+    }
     const {value } = event.target;
-    const data = [...rows];
-    search = value;
+    const data = [...oldRows];
+    setSearch(value);
     // Search by msv and show all data with msv like search value on new array
     const newData = data.filter((item) => {
       const itemData = item.msv.toUpperCase();
       const textData = value.toUpperCase();
       return itemData.indexOf(textData) > -1;
     });
-    initRow(newData);
+    if (value === "") {
+      initRow(oldRows);
+      setIsSearch(false);
+    } else initRow(newData);
   };
   return (
     <>
-      <td>
-              <input
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event)}
-                name="search"
-                className="form-control" />
-            </td>
       <h3 className="text-center">Sinh Viên</h3>
       <table className="table table-striped">
         <thead>
@@ -162,7 +169,7 @@ function Table() {
               <input
                 type="search"
                 value={search}
-                onChange={(event) => setSearch(event)}
+                onChange={(event) => handleSearch(event)}
                 name="search"
                 className="form-control" />
             </td>
